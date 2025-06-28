@@ -15,3 +15,5 @@ static constexpr int INACTIVITY_TIMEOUT = 500;
 - 連打とみなすクリックを計測する時間 *¹
 - 自動クリックする間隔
 - 連打をやめたと判断する秒数
+
+##### *¹ 「`RAPID_CLICK_WINDOW`ミリ秒に`RAPID_CLICK_THRESHOLD`回連打されたら」ということ
