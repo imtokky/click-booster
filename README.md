@@ -1,6 +1,6 @@
 # click-booster
 
-設定の変更は以下の部分を編集してください
+設定の変更は以下の部分を編集する
 
 ```cpp
 static constexpr int LONG_PRESS_THRESHOLD = 150;
