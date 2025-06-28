@@ -109,7 +109,6 @@ private:
 public:
     HighPerformanceClickAssist() {
         lastAutoClick = steady_clock::now();
-        cout << "現在の設定:" << endl;
         cout << "- 長押し判定: " << LONG_PRESS_THRESHOLD << "ms" << endl;
         cout << "- 連打判定: " << RAPID_CLICK_WINDOW << "ms以内に" << RAPID_CLICK_THRESHOLD << "回" << endl;
         cout << "- 自動クリック間隔: " << AUTO_CLICK_INTERVAL << "ms" << endl;
