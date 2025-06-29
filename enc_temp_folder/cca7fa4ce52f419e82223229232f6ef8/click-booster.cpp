@@ -48,7 +48,7 @@ private:
     static constexpr int RAPID_CLICK_THRESHOLD = 5;
     static constexpr int RAPID_CLICK_WINDOW = 1000;
     static constexpr int AUTO_CLICK_INTERVAL = 100;
-    static constexpr int INACTIVITY_TIMEOUT = 350;
+    static constexpr int INACTIVITY_TIMEOUT = 500;
     static constexpr int MAIN_LOOP_INTERVAL = 1;
 
     inline void fastClick() noexcept {
