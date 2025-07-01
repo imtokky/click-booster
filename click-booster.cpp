@@ -144,7 +144,6 @@ public:
                         longPressDetected.store(true, memory_order_relaxed);
                         if (rapidClickMode.load(memory_order_relaxed)) {
                             rapidClickMode.store(false, memory_order_relaxed);
-                            cout << "*** 連打モード終了（長押し検知） ***" << endl;
                         }
                     }
                 }
@@ -159,7 +158,6 @@ public:
 
             if (rapidClickMode.load(memory_order_relaxed) && shouldStopRapidMode()) {
                 rapidClickMode.store(false, memory_order_relaxed);
-                cout << "*** 連打モード終了（非アクティブ） ***" << endl;
             }
             }
             else {
@@ -176,13 +174,11 @@ public:
                         if (isRapidClicking()) {
                             if (!rapidClickMode.load(memory_order_relaxed)) {
                                 rapidClickMode.store(true, memory_order_relaxed);
-                                cout << "*** 連打モード開始 ***" << endl;
                             }
                         }
                         else {
                             if (rapidClickMode.load(memory_order_relaxed)) {
                                 rapidClickMode.store(false, memory_order_relaxed);
-                                cout << "*** 連打モード終了 ***" << endl;
                             }
                         }
                     }
