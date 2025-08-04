@@ -1,16 +1,22 @@
-﻿#include <iostream>
+﻿#include "tray.hpp"
+#include <iostream>
 #include <windows.h>
 #include <chrono>
 #include <array>
 #include <random>
 #include <atomic>
+#include <thread>
 #include <mmsystem.h>
+
+
 using namespace std;
 using namespace std::chrono;
 
+static atomic<bool> should_exit{ false };
+static thread* main_thread = nullptr;
+
 #pragma comment(lib, "winmm.lib")
 
-// ブランチ予測ヒント（C++20未満対応）
 #ifdef __has_cpp_attribute
 #if __has_cpp_attribute(likely)
 #define LIKELY [[likely]]
@@ -47,7 +53,7 @@ private:
     static constexpr int LONG_PRESS_THRESHOLD = 150;
     static constexpr int RAPID_CLICK_THRESHOLD = 5;
     static constexpr int RAPID_CLICK_WINDOW = 1000;
-    static constexpr int AUTO_CLICK_INTERVAL = 100;
+    static constexpr int AUTO_CLICK_INTERVAL = 90;
     static constexpr int INACTIVITY_TIMEOUT = 350;
     static constexpr int MAIN_LOOP_INTERVAL = 1;
 
@@ -150,7 +156,7 @@ public:
 
             if (rapidClickMode.load(memory_order_relaxed) && !currentPressed) {
                 const auto now = steady_clock::now();
-                int randomizedDelay = get_rand_range(static_cast<uint64_t>(AUTO_CLICK_INTERVAL) - 50, static_cast<uint64_t>(AUTO_CLICK_INTERVAL) + 50);
+                int randomizedDelay = get_rand_range(static_cast<uint64_t>(AUTO_CLICK_INTERVAL) - 30, static_cast<uint64_t>(AUTO_CLICK_INTERVAL) + 30);
                 if (duration_cast<milliseconds>(now - lastAutoClick).count() >= randomizedDelay) {
                     fastClick();
                 }
@@ -206,6 +212,28 @@ public:
 
 HighPerformanceClickAssist* g_assistant = nullptr;
 
+
+void quit_cb(struct tray_menu* item);
+static struct tray_menu menu_items[] = {
+    {"Quit", 0, 0, quit_cb, nullptr},
+    {nullptr, 0, 0, nullptr, nullptr}  // Null terminator
+};
+
+static struct tray tray = {
+    "",
+    menu_items
+};
+
+static void quit_cb(struct tray_menu* item) {
+    (void)item;
+    should_exit = true;
+    if (g_assistant) {
+        cout << "\n終了処理中..." << endl;
+        g_assistant->stop();
+    }
+    tray_exit();
+}
+
 static BOOL WINAPI ConsoleHandler(DWORD signal) {
     if (signal == CTRL_C_EVENT && g_assistant) {
         cout << "\n終了処理中..." << endl;
@@ -215,7 +243,7 @@ static BOOL WINAPI ConsoleHandler(DWORD signal) {
     return FALSE;
 }
 
-int main() {
+static int app_main() {
     HighPerformanceClickAssist assistant;
     g_assistant = &assistant;
 
@@ -227,6 +255,31 @@ int main() {
     catch (const exception& e) {
         cerr << "エラー: " << e.what() << endl;
         return 1;
+    }
+
+    return 0;
+}
+
+int main() {
+    if (tray_init(&tray) < 0) {
+        cerr << "トレイアイコンの初期化に失敗しました" << endl;
+        return -1;
+    }
+
+    thread app_thread(app_main);
+    main_thread = &app_thread;
+
+    while (!should_exit && tray_loop(1) == 0) {}
+
+    should_exit = true;
+    if (g_assistant) {
+        g_assistant->stop();
+    }
+
+    tray_exit();
+
+    if (app_thread.joinable()) {
+        app_thread.join();
     }
 
     return 0;
