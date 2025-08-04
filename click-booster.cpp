@@ -157,7 +157,7 @@ public:
 
             if (rapidClickMode.load(memory_order_relaxed) && !currentPressed) {
                 const auto now = steady_clock::now();
-                int randomizedDelay = get_rand_range(static_cast<uint64_t>(AUTO_CLICK_INTERVAL) - 30, static_cast<uint64_t>(AUTO_CLICK_INTERVAL) + 30);
+                int randomizedDelay = static_cast<int>(get_rand_range(static_cast<uint64_t>(AUTO_CLICK_INTERVAL) - 30, static_cast<uint64_t>(AUTO_CLICK_INTERVAL) + 30));
                 if (duration_cast<milliseconds>(now - lastAutoClick).count() >= randomizedDelay) {
                     fastClick();
                 }
