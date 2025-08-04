@@ -7,13 +7,7 @@
 #include <atomic>
 #include <thread>
 #include <mmsystem.h>
-
-
-using namespace std;
-using namespace std::chrono;
-
-static atomic<bool> should_exit{ false };
-static thread* main_thread = nullptr;
+#include <stdlib.h>
 
 #pragma comment(lib, "winmm.lib")
 
@@ -29,6 +23,14 @@ static thread* main_thread = nullptr;
 #define LIKELY
 #define UNLIKELY
 #endif
+
+
+using namespace std;
+using namespace std::chrono;
+
+static atomic<bool> should_exit{ false };
+static thread* main_thread = nullptr;
+
 
 class HighPerformanceClickAssist {
 private:
@@ -128,7 +130,6 @@ public:
         cout << "- 連打判定: " << RAPID_CLICK_WINDOW << "ms以内に" << RAPID_CLICK_THRESHOLD << "回" << endl;
         cout << "- 自動クリック間隔: " << AUTO_CLICK_INTERVAL << "ms" << endl;
         cout << "- レスポンス間隔: " << MAIN_LOOP_INTERVAL << "ms" << endl;
-        cout << "- 終了: Ctrl+C\n" << endl;
     }
 
     void run() {
@@ -220,7 +221,7 @@ static struct tray_menu menu_items[] = {
 };
 
 static struct tray tray = {
-    "",
+    "C:\\Users\\medki\\画像\\cb.ico",
     menu_items
 };
 
@@ -232,22 +233,14 @@ static void quit_cb(struct tray_menu* item) {
         g_assistant->stop();
     }
     tray_exit();
+
+    exit(0);
 }
 
-static BOOL WINAPI ConsoleHandler(DWORD signal) {
-    if (signal == CTRL_C_EVENT && g_assistant) {
-        cout << "\n終了処理中..." << endl;
-        g_assistant->stop();
-        return TRUE;
-    }
-    return FALSE;
-}
 
 static int app_main() {
     HighPerformanceClickAssist assistant;
     g_assistant = &assistant;
-
-    SetConsoleCtrlHandler(ConsoleHandler, TRUE);
 
     try {
         assistant.run();
@@ -266,14 +259,24 @@ int main() {
         return -1;
     }
 
+	HWND hConsole = GetConsoleWindow();
+    
+
     thread app_thread(app_main);
     main_thread = &app_thread;
+
+    if (hConsole) {
+        ShowWindow(hConsole, SW_HIDE);
+        Sleep(250);
+        FreeConsole();
+    }
 
     while (!should_exit && tray_loop(1) == 0) {}
 
     should_exit = true;
     if (g_assistant) {
         g_assistant->stop();
+        g_assistant = nullptr;
     }
 
     tray_exit();
